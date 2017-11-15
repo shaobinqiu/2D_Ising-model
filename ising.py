@@ -57,7 +57,7 @@ def get_s(atom_number, numbers):
         s = 0
     return s
 path1 = "/home/qiusb/Documents/python_work/2D_Ising_model/" #文件夹目录
-path2 = "a"
+path2 = "d2C_B16"
 path = path1 + path2
 files= os.listdir(path) #得到文件夹下的所有文件名称
 infs=[]#Sij sum_si
@@ -70,13 +70,14 @@ for file in files: #遍历文件夹
     latt, pos, numbers = from_string(content)
     list1=range(1,sum(numbers)+1)
     # gennerate a repeat matrix
+    #mt_rep = np.array([i for i in product([-1, 0, 1], repeat=3)])
     mt_rep=np.array([[a_rep, b_rep, c_rep] for a_rep in [-1,0,1]
                                                 for b_rep in [-1,0,1]
                                                     for c_rep in [-1,0,1]])
     pos_rep = np.array([vect+atom for vect in mt_rep
                                                 for atom in pos])
     atom_number1 = 0
-    S_ij = 0
+    S_ij = [0, 0, 0, 0, 0, 0]
     for atom in pos:
         atom_number1 += 1
         # direct vector of this atom and all atoms
@@ -90,14 +91,19 @@ for file in files: #遍历文件夹
         diss_min4st = min(i for i in diss if i>diss_min3st+0.1)
         diss_min5st = min(i for i in diss if i>diss_min4st+0.1)
         diss_min6st = min(i for i in diss if i>diss_min5st+0.1)
-        print(diss,diss_min1st, diss_min2st, diss_min3st, diss_min4st, diss_min5st, diss_min6st)
         for dis in diss:
             step += 1
             # only consider nearst atoms
-            if abs(dis-diss_min1st)<0.1:
+            ord_dis=1*bool(abs(dis-diss_min1st)<0.1)+2*bool(abs(dis-diss_min2st)<0.1)\
+                    +3*bool(abs(dis-diss_min3st)<0.1)+4*bool(abs(dis-diss_min4st)<0.1)\
+                    +5*bool(abs(dis-diss_min5st)<0.1)+6*bool(abs(dis-diss_min6st)<0.1)
+            if ord_dis>0:
                 s_j = get_s(((step-1) % sum(numbers))+1, numbers)
-                S_ij += s_i * s_j
-    a=str(S_ij/sum(numbers))+'    '+str((numbers[-2]-numbers[-1])/sum(numbers))+'\n'
+                S_ij[ord_dis-1] += s_i * s_j
+    a=str(S_ij[0]/sum(numbers))+'    '+str(S_ij[1]/sum(numbers))+'    '\
+      +str(S_ij[2]/sum(numbers))+'    '+str(S_ij[3]/sum(numbers))+'    '\
+      +str(S_ij[4]/sum(numbers))+'    '+str(S_ij[5]/sum(numbers))+'    '\
+      +str((numbers[-2]-numbers[-1])/sum(numbers))+'\n'
     infs.append(a)
     bar.move()
     bar.log('We have arrived at: ' + str(i+1))
