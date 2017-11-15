@@ -56,7 +56,9 @@ def get_s(atom_number, numbers):
     else:
         s = 0
     return s
-path = "/home/qiusb/Documents/python_work/2D_Ising_model/B16" #文件夹目录
+path1 = "/home/qiusb/Documents/python_work/2D_Ising_model/" #文件夹目录
+path2 = "a"
+path = path1 + path2
 files= os.listdir(path) #得到文件夹下的所有文件名称
 infs=[]#Sij sum_si
 bar = ProgressBar(total = len(files))
@@ -82,11 +84,17 @@ for file in files: #遍历文件夹
         diss = list(np.linalg.norm(radiu) for radiu in radius)
         step = 0
         s_i = get_s(atom_number1, numbers)
-        diss_min = min(i for i in diss if i>0)
+        diss_min1st = min(i for i in diss if i>0)
+        diss_min2st = min(i for i in diss if i>diss_min1st+0.1)
+        diss_min3st = min(i for i in diss if i>diss_min2st+0.1)
+        diss_min4st = min(i for i in diss if i>diss_min3st+0.1)
+        diss_min5st = min(i for i in diss if i>diss_min4st+0.1)
+        diss_min6st = min(i for i in diss if i>diss_min5st+0.1)
+        print(diss,diss_min1st, diss_min2st, diss_min3st, diss_min4st, diss_min5st, diss_min6st)
         for dis in diss:
             step += 1
             # only consider nearst atoms
-            if abs(dis-diss_min)<0.1:
+            if abs(dis-diss_min1st)<0.1:
                 s_j = get_s(((step-1) % sum(numbers))+1, numbers)
                 S_ij += s_i * s_j
     a=str(S_ij/sum(numbers))+'    '+str((numbers[-2]-numbers[-1])/sum(numbers))+'\n'
@@ -98,7 +106,7 @@ for file in files: #遍历文件夹
 
 
 
-f = open('s_ij_s_i.txt', 'w')
+f = open(path2+'_s_ij_s_i.txt', 'w')
 for inf in infs:
     f.write(inf)
 f.close
