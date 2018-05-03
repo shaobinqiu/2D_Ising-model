@@ -100,3 +100,8 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# My configurations
+*.png
+*.zip
+/1_25/*

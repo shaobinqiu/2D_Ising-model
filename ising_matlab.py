@@ -2,7 +2,8 @@ from numpy import *
 import numpy as np
 import itertools
 import os
-
+from scipy.spatial.distance import pdist
+@profile
 def from_string(content):
     # move empty line
     lines = [l for l in content.split('\n') if l.rstrip()]
@@ -24,7 +25,7 @@ def from_string(content):
                                                  for line in lines[8:]]),
                           decimals=6)
     return lattice, positions, natoms
-
+@profile
 #定义一个函数，path为你的路径
 def traversalDir_FirstDir(path):
 #定义一个列表，用来存储结果
@@ -42,10 +43,16 @@ def traversalDir_FirstDir(path):
                 list1.append(h[1])
     return list1
 
-
+@profile
 def main(list1):
     infs=[]#Sij sum_si
     all_inf=[]#include filename
+    diss_min1st = 1.60
+    diss_min2st = 2.77
+    diss_min3st = 3.20
+    diss_min4st = 4.233
+    diss_min5st = 4.80
+    diss_min6st =  5.54
     for dir1 in list1:
         R=6#扩胞半径
         path1 = "./" #文件夹目录
@@ -53,7 +60,7 @@ def main(list1):
         path =  path1 +path2
         files= os.listdir(path) #得到文件夹下的所有文件名称
 
-        process=1#在算第几个结构
+        i=1
         for file in files: #遍历文件夹
 
             with open(path+'/'+file, "r") as f:
@@ -71,49 +78,37 @@ def main(list1):
             n2 = round(L/math.sqrt((np.array(latt)[1]**2).sum()))+1
             mt_rep=np.array([[a_rep, b_rep, c_rep] for a_rep in range(-n1, n1+1)
                                                          for b_rep in range(-n2, n2+1)
-                                                             for c_rep in [0]])#扩胞矩阵
-            print(mt_rep)
+                                                             for c_rep in [0]])
 
-
-            s=[]
-            for i in range(1,sum(numbers)*len(mt_rep)+1):
-                s.append(1*bool(i>sum(numbers)-numbers[-1]-numbers[-2] and i<=sum(numbers)-numbers[-1])\
-                    -1*bool(i>sum(numbers)-numbers[-1]))
             pos_rep = np.array([vect+atom for vect in mt_rep
                                                         for atom in pos])
-            s_rep = tile(s, (1,len(pos_rep)))
             atom_number1 = 0
-            print(len(s))
             S_ij = [0, 0, 0, 0, 0, 0]
             for atom in pos:
                 atom_number1 += 1
                 # direct vector of this atom and all atoms
-                radius = mat(pos_rep-tile(atom, (len(pos_rep),1)))*mat(latt)
+                radius = np.round(mat(pos_rep-tile(atom, (len(pos_rep),1)))*mat(latt),4)
                 diss = list(math.sqrt((np.array(radiu)**2).sum()) for radiu in radius)
 
                 #diss = list(np.linalg.norm(radiu) for radiu in radius)
                 step = 0
-                s_i = s[atom_number1-1]
-                diss_min1st = min(i for i in diss if i>0)
-                diss_min2st = min(i for i in diss if i>diss_min1st+0.01)
-                diss_min3st = min(i for i in diss if i>diss_min2st+0.01)
-                diss_min4st = min(i for i in diss if i>diss_min3st+0.01)
-                diss_min5st = min(i for i in diss if i>diss_min4st+0.01)
-                diss_min6st = min(i for i in diss if i>diss_min5st+0.01)
+                s_i = 2*bool(atom_number1 <=numbers[0])-1
                 number_check = 0
                 for dis in diss:
-                    step += 1
-                    # only consider nearst atoms
-                    ord_dis=1*bool(abs(dis-diss_min1st)<0.001)+2*bool(abs(dis-diss_min2st)<0.001)\
-                            +3*bool(abs(dis-diss_min3st)<0.001)+4*bool(abs(dis-diss_min4st)<0.001)\
-                            +5*bool(abs(dis-diss_min5st)<0.001)+6*bool(abs(dis-diss_min6st)<0.001)
-                    if ord_dis>0:
-                        number_check += 1
-                        s_j = s[step-1]
-                        S_ij[ord_dis-1] += s_i * s_j
-                print(number_check)
+                    if dis<min6st+0.3:
+                        step += 1
+                        # only consider nearst atoms
+                        ord_dis=1*bool(abs(dis-diss_min1st)<0.01)+2*bool(abs(dis-diss_min2st)<0.01)\
+                                +3*bool(abs(dis-diss_min3st)<0.01)+4*bool(abs(dis-diss_min4st)<0.01)\
+                                +5*bool(abs(dis-diss_min5st)<0.01)+6*bool(abs(dis-diss_min6st)<0.01)
+                        if ord_dis>0:
+                            number_check += 1
+                            s_j = 2*bool(((step-1) % number_atom)+1 <=numbers[0])-1
+                            S_ij[ord_dis-1] += s_i * s_j
                 if number_check % 6 != 0:
-                    asjh
+                    print(path+'/'+file+'\n')
+                    baochuo
+            S_ij = S_ij
             a=str(S_ij[0]/number_atom)+'    '+str(S_ij[1]/number_atom)+'    '\
               +str(S_ij[2]/number_atom)+'    '+str(S_ij[3]/number_atom)+'    '\
               +str(S_ij[4]/number_atom)+'    '+str(S_ij[5]/number_atom)+'    '\
@@ -128,21 +123,21 @@ def main(list1):
               '    '+str(diss_min5st)+'    '+str(diss_min6st)+'    '+path+'/'+file+'\n'
             infs.append(a)
             all_inf.append(b)
-            process += 1
-            print(process)
+            i += 1
+            print(i)
 
 
 
-    f = open('infs.txt', 'w')
-    for inf in infs:
-        f.write(inf)
-    f.close
-    f1 = open('all_inf.txt', 'w')
-    for inf1 in all_inf:
-        f1.write(inf1)
-    f1.close
+    # f = open('infs_int.txt', 'w')
+    # for inf in infs:
+    #     f.write(inf)
+    # f.close
+    # f1 = open('all_inf_int.txt', 'w')
+    # for inf1 in all_inf:
+    #     f1.write(inf1)
+    # f1.close
 
 list1 = traversalDir_FirstDir("./")
 print(list1)
 
-main(["tex"])
+main(["d2C_B9"])
